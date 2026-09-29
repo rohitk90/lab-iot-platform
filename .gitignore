@@ -1,7 +1,21 @@
-# Environment variables and secrets
+# --- Security Safeguards ---
 .env
 
-# Docker data volumes (host-mounted directories)
+# --- Local Host Data Folders ---
+# In case someone runs docker volumes inside the repository root later
 data/
-# Or if you use a different path defined by DATA_PATH in .env:
-# /var/lib/lab-platform/data/
+*.db
+
+# --- Generated Dynamic Config Files ---
+# Ignore the telegraf configuration files spat out by onboard.py
+telegraf_*.conf
+
+# --- Python Runtime Files ---
+__pycache__/
+*.pyc
+*.pyo
+.pypy/
+.env/
+venv/
+env/
+
