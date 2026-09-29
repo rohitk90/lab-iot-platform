@@ -1,28 +1,13 @@
 # onboarding/onboard.py
-import os
 import sys
 import yaml
-import psycopg2
 from pathlib import Path
 
-def onboard_system(config_path):
-    # 1. Fetch credentials securely from the server environment variables
-    db_name = os.getenv("POSTGRES_DB")
-    db_user = os.getenv("POSTGRES_USER")
-    db_password = os.getenv("POSTGRES_PASSWORD")
-    db_host = os.getenv("DB_HOST", "localhost")  # Defaults to localhost if run directly on server
-    db_port = os.getenv("DB_PORT", "5432")
-
-    # Guard clause: Verify environment parameters are active
-    if not all([db_name, db_user, db_password]):
-        print("❌ Critical Error: Database environment variables are missing.")
-        print("   Ensure you have sourced your .env file or run this within the platform network.")
-        sys.exit(1)
-
-    # Construct connection string dynamically
-    db_connection_string = f"host={db_host} port={db_port} dbname={db_name} user={db_user} password={db_password}"
-
-    # 2. Parse the standard human-readable YAML configuration file
+def generate_edge_config(config_path):
+    """
+    Parses a human-readable system configuration YAML file and generates
+    the corresponding edge telegraf.conf configuration block out of it.
+    """
     try:
         with open(config_path, 'r') as file:
             config = yaml.safe_load(file)
@@ -30,79 +15,64 @@ def onboard_system(config_path):
         print(f"❌ Error: Configuration file not found at '{config_path}'")
         sys.exit(1)
     except yaml.YAMLError as e:
-        print(f"❌ Error parsing YAML layout: {e}")
+        print(f"❌ Error parsing YAML configuration sheet layout: {e}")
         sys.exit(1)
     
-    asset = config['asset']
-    tags = config['tags']
-    plc = config['plc']
+    # Extract structural layout dictionaries
+    asset = config.get('asset', {})
+    plc = config.get('plc', {})
+    tags = config.get('tags', [])
+
+    if not asset or not plc or not tags:
+        print("❌ Error: Missing mandatory fields ('asset', 'plc', or 'tags') in YAML.")
+        sys.exit(1)
     
-    print(f"Connecting to database securely to onboard: {asset['name']}...")
+    print(f"Reading profile for: {asset.get('name', 'Unknown Asset')}")
+    output_path = Path(f"./telegraf_{asset.get('id', 'unknown')}.conf")
     
     try:
-        conn = psycopg2.connect(db_connection_string)
-        cursor = conn.cursor()
-        
-        # 3. Automatically register the Asset metadata
-        cursor.execute("""
-            INSERT INTO platform_data.assets (asset_id, asset_name, location_zone)
-            VALUES (%s, %s, %s)
-            ON CONFLICT (asset_id) DO UPDATE SET 
-                asset_name = EXCLUDED.asset_name, 
-                location_zone = EXCLUDED.location_zone;
-        """, (asset['id'], asset['name'], asset['location_zone']))
-        
-        # 4. Automatically register all parameter strings inside the Tag table
-        for tag in tags:
-            tag_composite_id = f"{asset['id']}.{tag['name']}"
-            tag_display_name = f"{tag['description']} ({tag['name']})"
+        with open(output_path, 'w') as f:
+            # Write agent baseline parameters wrapper
+            f.write("[agent]\n")
+            f.write('  interval = "1s"\n')
+            f.write("  round_interval = true\n")
+            f.write("  metric_batch_size = 1000\n")
+            f.write("  metric_buffer_limit = 10000\n")
+            f.write('  flush_interval = "1s"\n')
+            f.write('  precision = "1ms"\n')
+            f.write(f'  hostname = "edge-pi-{asset.get("id", "dev")}"\n\n')
+
+            # Write the Siemens s7comm input block details
+            f.write("[[inputs.s7comm]]\n")
+            f.write(f'  server = "{plc.get("ip_address", "127.0.0.1")}"\n')
+            f.write(f'  port = {plc.get("port", 102)}\n')
+            f.write("  fields = [\n")
             
-            cursor.execute("""
-                INSERT INTO platform_data.asset_tags (tag_id, asset_id, tag_name, data_type)
-                VALUES (%s, %s, %s, %s)
-                ON CONFLICT (tag_id) DO UPDATE SET 
-                    tag_name = EXCLUDED.tag_name, 
-                    data_type = EXCLUDED.data_type;
-            """, (tag_composite_id, asset['id'], tag_display_name, tag['data_type']))
+            for tag in tags:
+                # Dynamically evaluate target metrics parsing type primitives
+                s7_type = "real" if tag.get('data_type') == "float" else "bool"
+                f.write(f'    {{ name = "{tag.get("name")}", address = "{plc.get("data_block")}.{tag.get("address_offset")}", type = "{s7_type}" }},\n')
+                
+            f.write("  ]\n")
+            f.write("  [inputs.s7comm.tags]\n")
+            f.write(f'    asset_id = "{asset.get("id")}"\n\n')
+
+            # Write the standard MQTT output distribution engine wrapper
+            f.write("[[outputs.mqtt]]\n")
+            f.write('  servers = ["tcp://10.0.1.190:1883"]\n')
+            f.write(f'  topic_prefix = "lab/{asset.get("id")}/telemetry"\n')
+            f.write('  data_format = "json"\n')
             
-        conn.commit()
-        print("🎉 Database metadata profiles registered successfully!")
-        
-        # 5. Generate the corresponding Telegraf Configuration block automatically
-        generate_telegraf_config(asset, plc, tags)
+        print(f"🎉 Success! Custom Telegraf edge configuration generated at:\n   ➡️ {output_path.resolve()}")
+        print("\nCopy this file content onto the plant-floor Raspberry Pi 5 node.")
+        print("The central database will auto-discover and auto-register it instantly upon boot!")
         
     except Exception as e:
-        if 'conn' in locals() and conn:
-            conn.rollback()
-        print(f"❌ Critical Error onboarding system: {e}")
-    finally:
-        if 'cursor' in locals() and cursor:
-            cursor.close()
-        if 'conn' in locals() and conn:
-            conn.close()
-
-def generate_telegraf_config(asset, plc, tags):
-    output_path = Path(f"./telegraf_{asset['id']}.conf")
-    
-    with open(output_path, 'w') as f:
-        f.write("[[inputs.s7comm]]\n")
-        f.write(f'  server = "{plc["ip_address"]}"\n')
-        f.write(f'  port = {plc["port"]}\n')
-        f.write("  fields = [\n")
-        
-        for tag in tags:
-            s7_type = "real" if tag['data_type'] == "float" else "bool"
-            f.write(f'    {{ name = "{tag["name"]}", address = "{plc["data_block"]}.{tag["address_offset"]}", type = "{s7_type}" }},\n')
-            
-        f.write("  ]\n")
-        f.write("  [inputs.s7comm.tags]\n")
-        f.write(f'    asset_id = "{asset["id"]}"\n')
-        
-    print(f"📝 Custom Telegraf edge configuration generated at: {output_path.resolve()}")
+        print(f"❌ Critical Error generating configuration files: {e}")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python onboard.py <path_to_config_yaml>")
         sys.exit(1)
         
-    onboard_system(sys.argv[1])
+    generate_edge_config(sys.argv[1])
