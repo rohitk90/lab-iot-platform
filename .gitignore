@@ -1,0 +1,7 @@
+# Environment variables and secrets
+.env
+
+# Docker data volumes (host-mounted directories)
+data/
+# Or if you use a different path defined by DATA_PATH in .env:
+# /var/lib/lab-platform/data/
