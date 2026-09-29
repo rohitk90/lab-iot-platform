@@ -75,3 +75,16 @@ services:
       - "80:80"         # Unified Web Access Port for the 40 desktops
     depends_on:
       - grafana
+
+  telegraf_server:
+    image: telegraf:alpine
+    container_name: lab_telegraf_server
+    restart: always
+    environment:
+      # Compiles the standalone connection string securely in the server engine
+      - TELEGRAF_DB_CONNECTION=host=timescaledb user=${POSTGRES_USER} password=${POSTGRES_PASSWORD} dbname=${POSTGRES_DB} sslmode=disable
+    volumes:
+      - ./infra/telegraf_server/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    depends_on:
+      - emqx
+      - timescaledb
