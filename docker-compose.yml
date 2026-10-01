@@ -76,13 +76,15 @@ services:
     depends_on:
       - grafana
 
+
   telegraf_server:
     image: telegraf:alpine
     container_name: lab_telegraf_server
     restart: always
     environment:
-      # Compiles the standalone connection string securely in the server engine
       - TELEGRAF_DB_CONNECTION=host=timescaledb user=${POSTGRES_USER} password=${POSTGRES_PASSWORD} dbname=${POSTGRES_DB} sslmode=disable
+      - TELEGRAF_MQTT_USER=${TELEGRAF_MQTT_USER}
+      - TELEGRAF_MQTT_PASSWORD=${TELEGRAF_MQTT_PASSWORD}
     volumes:
       - ./infra/telegraf_server/telegraf.conf:/etc/telegraf/telegraf.conf:ro
     depends_on:
