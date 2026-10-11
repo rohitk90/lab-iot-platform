@@ -1,26 +1,4 @@
 services:
-  # ---------------------------------------------------------------------------
-  # One-shot bootstrap: create host data dirs and fix ownership so the
-  # containers that run as non-root UIDs can write to their volumes.
-  # Exits 0 immediately after; it will show as "Exited (0)" in `docker ps -a`.
-  # ---------------------------------------------------------------------------
-  init-permissions:
-    image: alpine:3.20
-    container_name: lab_init_permissions
-    restart: "no"
-    volumes:
-      - ${DATA_PATH}:/data
-    command: >
-      sh -c "
-        set -e;
-        mkdir -p /data/emqx /data/grafana /data/timescaledb /data/redis /data/minio;
-        chown -R 1000:1000 /data/emqx;
-        chown -R 472:472   /data/grafana;
-        chown -R 999:999   /data/timescaledb;
-        chown -R 999:999   /data/redis;
-        chown -R 1000:1000 /data/minio;
-        echo 'init-permissions: done';
-      "
 
   # ---------------------------------------------------------------------------
   timescaledb:
@@ -36,9 +14,6 @@ services:
       - ./infra/timescaledb/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     ports:
       - "5432:5432"
-    depends_on:
-      init-permissions:
-        condition: service_completed_successfully
 
   # ---------------------------------------------------------------------------
   emqx:
@@ -50,9 +25,6 @@ services:
     ports:
       - "1883:1883"     # MQTT Connection Port
       - "18083:18083"   # EMQX Admin Dashboard Web Interface
-    depends_on:
-      init-permissions:
-        condition: service_completed_successfully
 
   # ---------------------------------------------------------------------------
   redis:
@@ -64,9 +36,6 @@ services:
       - ${DATA_PATH}/redis:/data
     ports:
       - "6379:6379"
-    depends_on:
-      init-permissions:
-        condition: service_completed_successfully
 
   # ---------------------------------------------------------------------------
   minio:
@@ -82,9 +51,6 @@ services:
       - "9000:9000"     # API Endpoint
       - "9001:9001"     # Web Console
     command: server /data --console-address ":9001"
-    depends_on:
-      init-permissions:
-        condition: service_completed_successfully
 
   # ---------------------------------------------------------------------------
   grafana:
@@ -93,6 +59,7 @@ services:
     restart: always
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_DASHBOARDS_MIN_REFRESH_INTERVAL=1s
       # Securely inject database credentials from .env to hide plain-text passwords
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -103,8 +70,6 @@ services:
     ports:
       - "3000:3000"     # Grafana UI (also fronted by nginx)
     depends_on:
-      init-permissions:
-        condition: service_completed_successfully
       timescaledb:
         condition: service_started
 
@@ -125,8 +90,9 @@ services:
     image: telegraf:alpine
     container_name: lab_telegraf_server
     restart: always
+    command: telegraf --non-strict-env-handling
     environment:
-      - TELEGRAF_DB_CONNECTION=host=timescaledb user=${POSTGRES_USER} password=${POSTGRES_PASSWORD} dbname=${POSTGRES_DB} sslmode=disable
+      - TELEGRAF_DB_CONNECTION=host=timescaledb user=${POSTGRES_USER} password=${POSTGRES_PASSWORD} dbname=${POSTGRES_DB} sslmode=disable search_path=platform_data
       - TELEGRAF_MQTT_USER=${TELEGRAF_MQTT_USER}
       - TELEGRAF_MQTT_PASSWORD=${TELEGRAF_MQTT_PASSWORD}
     volumes:
@@ -134,3 +100,7 @@ services:
     depends_on:
       - emqx
       - timescaledb
+
+networks:
+  default:
+    name: lab-iot-platform_default
