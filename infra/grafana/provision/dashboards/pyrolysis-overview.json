@@ -80,7 +80,7 @@
               { "color": "dark-red", "value": 14 }
             ]
           },
-          "unit": "kg/h"
+          "unit": "kg"
         },
         "overrides": []
       },
@@ -99,11 +99,11 @@
           "datasource": { "type": "postgres", "uid": "timescaledb" },
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT val_float AS \"flow\" FROM platform_data.telemetry WHERE tag_id = 'biomass_pyrolyser_01.bio_crude_mass_flow_rate' AND val_float IS NOT NULL ORDER BY time DESC LIMIT 1",
+          "rawSql": "SELECT val_float AS \"mass\" FROM platform_data.telemetry WHERE tag_id = 'biomass_pyrolyser_01.bio_crude_total_mass' AND val_float IS NOT NULL ORDER BY time DESC LIMIT 1",
           "refId": "A"
         }
       ],
-      "title": "Bio-crude Flow",
+      "title": "Bio-crude Mass",
       "type": "stat"
     },
     {
@@ -474,6 +474,120 @@
       ],
       "title": "Chiller Outlet Bypass Valve",
       "type": "stat"
+    },
+    {
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "blue", "value": null }
+            ]
+          },
+          "unit": "kwatth"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 8, "x": 0, "y": 22 },
+      "id": 130,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value_only"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT val_float AS \"energy\" FROM platform_data.telemetry WHERE tag_id = 'biomass_pyrolyser_01.auxillary_system_energy_consumption' AND val_float IS NOT NULL ORDER BY time DESC LIMIT 1",
+          "refId": "A"
+        }
+      ],
+      "title": "Auxiliary System Energy",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "dark-orange", "value": null }
+            ]
+          },
+          "unit": "kwatth"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 8, "x": 8, "y": 22 },
+      "id": 131,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value_only"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT val_float AS \"energy\" FROM platform_data.telemetry WHERE tag_id = 'biomass_pyrolyser_01.induction_heating_system_energy_consumption' AND val_float IS NOT NULL ORDER BY time DESC LIMIT 1",
+          "refId": "A"
+        }
+      ],
+      "title": "Induction Heating Energy",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "postgres", "uid": "timescaledb" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "dark-purple", "value": null }
+            ]
+          },
+          "unit": "kwatth"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 8, "x": 16, "y": 22 },
+      "id": 132,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value_only"
+      },
+      "targets": [
+        {
+          "datasource": { "type": "postgres", "uid": "timescaledb" },
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT val_float AS \"energy\" FROM platform_data.telemetry WHERE tag_id = 'biomass_pyrolyser_01.plc_system_energy_consumption' AND val_float IS NOT NULL ORDER BY time DESC LIMIT 1",
+          "refId": "A"
+        }
+      ],
+      "title": "PLC System Energy",
+      "type": "stat"
     }
   ],
   "refresh": "2s",
@@ -488,6 +602,6 @@
   "timezone": "browser",
   "title": "Pyrolysis Overview",
   "uid": "pyrolysis-overview",
-  "version": 4,
+  "version": 5,
   "weekStart": ""
 }
