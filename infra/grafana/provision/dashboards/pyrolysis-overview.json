@@ -24,569 +24,134 @@
   "panels": [
     {
       "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "dark-red", "value": null },
-              { "color": "dark-orange", "value": 420 },
-              { "color": "dark-green", "value": 480 },
-              { "color": "dark-yellow", "value": 540 },
-              { "color": "dark-red", "value": 570 }
-            ]
-          },
-          "unit": "celsius"
-        },
-        "overrides": []
-      },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "dark-red", "value": null }, { "color": "dark-orange", "value": 420 }, { "color": "dark-green", "value": 480 }, { "color": "dark-yellow", "value": 540 }, { "color": "dark-red", "value": 570 } ] }, "unit": "celsius" }, "overrides": [] },
       "gridPos": { "h": 5, "w": 5, "x": 0, "y": 0 },
       "id": 100,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "value_only"
-      },
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "value_only" },
       "targets": [
-        {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "SELECT MAX(val_float) AS \"peak\" FROM platform_data.telemetry WHERE tag_id LIKE 'biomass_pyrolyser_01.pyrolyzer_reactor_temperature_%' AND time > NOW() - INTERVAL '30 seconds'",
-          "refId": "A"
-        }
+        { "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "table", "rawQuery": true, "rawSql": "SELECT MAX(t.val_float) AS \"peak\" FROM platform_data.telemetry t JOIN platform_data.asset_tags a ON a.tag_serial = t.tag_serial WHERE a.tag_id LIKE 'biomass_pyrolyser_01.pyrolyzer_reactor_temperature_%' AND t.time > NOW() - INTERVAL '30 seconds'", "refId": "A" }
       ],
       "title": "Reactor Peak Temp",
       "type": "stat"
     },
     {
       "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "dark-red", "value": null },
-              { "color": "dark-yellow", "value": 4 },
-              { "color": "dark-green", "value": 6 },
-              { "color": "dark-yellow", "value": 10 },
-              { "color": "dark-red", "value": 14 }
-            ]
-          },
-          "unit": "kg"
-        },
-        "overrides": []
-      },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "dark-red", "value": null }, { "color": "dark-yellow", "value": 4 }, { "color": "dark-green", "value": 6 }, { "color": "dark-yellow", "value": 10 }, { "color": "dark-red", "value": 14 } ] }, "unit": "kg" }, "overrides": [] },
       "gridPos": { "h": 5, "w": 5, "x": 5, "y": 0 },
       "id": 101,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "value_only"
-      },
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "value_only" },
       "targets": [
-        {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "SELECT val_float AS \"mass\" FROM platform_data.telemetry WHERE tag_id = 'biomass_pyrolyser_01.bio_crude_total_mass' AND val_float IS NOT NULL ORDER BY time DESC LIMIT 1",
-          "refId": "A"
-        }
+        { "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "table", "rawQuery": true, "rawSql": "SELECT t.val_float AS \"mass\" FROM platform_data.telemetry t JOIN platform_data.asset_tags a ON a.tag_serial = t.tag_serial WHERE a.tag_id = 'biomass_pyrolyser_01.bio_crude_total_mass' AND t.val_float IS NOT NULL ORDER BY t.time DESC LIMIT 1", "refId": "A" }
       ],
       "title": "Bio-crude Mass",
       "type": "stat"
     },
     {
       "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "dark-red", "value": null },
-              { "color": "dark-yellow", "value": 1 },
-              { "color": "dark-green", "value": 2 },
-              { "color": "dark-yellow", "value": 5 },
-              { "color": "dark-red", "value": 8 }
-            ]
-          },
-          "unit": "m3/h"
-        },
-        "overrides": []
-      },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "dark-red", "value": null }, { "color": "dark-yellow", "value": 1 }, { "color": "dark-green", "value": 2 }, { "color": "dark-yellow", "value": 5 }, { "color": "dark-red", "value": 8 } ] }, "unit": "m3/h" }, "overrides": [] },
       "gridPos": { "h": 5, "w": 5, "x": 10, "y": 0 },
       "id": 102,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "value_only"
-      },
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "value_only" },
       "targets": [
-        {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "SELECT val_float AS \"flow\" FROM platform_data.telemetry WHERE tag_id = 'biomass_pyrolyser_01.suction_blower_exit_volume_flow_rate' AND val_float IS NOT NULL ORDER BY time DESC LIMIT 1",
-          "refId": "A"
-        }
+        { "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "table", "rawQuery": true, "rawSql": "SELECT t.val_float AS \"flow\" FROM platform_data.telemetry t JOIN platform_data.asset_tags a ON a.tag_serial = t.tag_serial WHERE a.tag_id = 'biomass_pyrolyser_01.suction_blower_exit_volume_flow_rate' AND t.val_float IS NOT NULL ORDER BY t.time DESC LIMIT 1", "refId": "A" }
       ],
       "title": "Pyrogas Flow",
       "type": "stat"
     },
     {
       "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "dark-red", "value": null },
-              { "color": "dark-yellow", "value": 60 },
-              { "color": "dark-green", "value": 80 },
-              { "color": "dark-yellow", "value": 95 },
-              { "color": "dark-red", "value": 105 }
-            ]
-          },
-          "unit": "kwatt"
-        },
-        "overrides": []
-      },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "dark-red", "value": null }, { "color": "dark-yellow", "value": 60 }, { "color": "dark-green", "value": 80 }, { "color": "dark-yellow", "value": 95 }, { "color": "dark-red", "value": 105 } ] }, "unit": "kwatt" }, "overrides": [] },
       "gridPos": { "h": 5, "w": 5, "x": 15, "y": 0 },
       "id": 103,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "value_only"
-      },
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "value_only" },
       "targets": [
-        {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "SELECT val_float AS \"power\" FROM platform_data.telemetry WHERE tag_id = 'biomass_pyrolyser_01.pyrolyzer_heater_power' AND val_float IS NOT NULL ORDER BY time DESC LIMIT 1",
-          "refId": "A"
-        }
+        { "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "table", "rawQuery": true, "rawSql": "SELECT t.val_float AS \"power\" FROM platform_data.telemetry t JOIN platform_data.asset_tags a ON a.tag_serial = t.tag_serial WHERE a.tag_id = 'biomass_pyrolyser_01.pyrolyzer_heater_power' AND t.val_float IS NOT NULL ORDER BY t.time DESC LIMIT 1", "refId": "A" }
       ],
       "title": "Pyrolyzer Heater Power",
       "type": "stat"
     },
     {
       "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "dark-green", "value": null },
-              { "color": "dark-yellow", "value": 5 },
-              { "color": "dark-red", "value": 15 }
-            ]
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [ { "color": "dark-green", "value": null }, { "color": "dark-yellow", "value": 5 }, { "color": "dark-red", "value": 15 } ] }, "unit": "s" }, "overrides": [] },
       "gridPos": { "h": 5, "w": 4, "x": 20, "y": 0 },
       "id": 104,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "value_only"
-      },
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "value_only" },
       "targets": [
-        {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "SELECT EXTRACT(EPOCH FROM (NOW() - MAX(time))) AS \"age\" FROM platform_data.telemetry WHERE tag_id LIKE 'biomass_pyrolyser_01.%' AND time > NOW() - INTERVAL '5 minutes'",
-          "refId": "A"
-        }
+        { "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "table", "rawQuery": true, "rawSql": "SELECT EXTRACT(EPOCH FROM (NOW() - MAX(t.time))) AS \"age\" FROM platform_data.telemetry t JOIN platform_data.asset_tags a ON a.tag_serial = t.tag_serial WHERE a.tag_id LIKE 'biomass_pyrolyser_01.%' AND t.time > NOW() - INTERVAL '5 minutes'", "refId": "A" }
       ],
       "title": "Data Age",
       "type": "stat"
     },
     {
       "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "continuous-GrYlRd" },
-          "mappings": [],
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
-          "unit": "short"
-        },
-        "overrides": [
-          {
-            "matcher": { "id": "byName", "options": "Position (mm)" },
-            "properties": [
-              { "id": "unit", "value": "lengthmm" },
-              { "id": "custom.axisPlacement", "value": "horizontal" },
-              { "id": "color", "value": { "mode": "fixed", "fixedColor": "text" } },
-              { "id": "custom.axisLabel", "value": "Position (mm)" }
-            ]
-          },
-          {
-            "matcher": { "id": "byName", "options": "Temperature (°C)" },
-            "properties": [
-              { "id": "unit", "value": "celsius" },
-              { "id": "custom.axisPlacement", "value": "vertical" },
-              { "id": "color", "value": { "mode": "continuous-GrYlRd" } },
-              { "id": "custom.axisLabel", "value": "Temperature (°C)" }
-            ]
-          }
-        ]
-      },
+      "fieldConfig": { "defaults": { "color": { "mode": "continuous-GrYlRd" }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }, "unit": "short" }, "overrides": [ { "matcher": { "id": "byName", "options": "Position (mm)" }, "properties": [ { "id": "unit", "value": "lengthmm" }, { "id": "custom.axisPlacement", "value": "horizontal" }, { "id": "color", "value": { "mode": "fixed", "fixedColor": "text" } }, { "id": "custom.axisLabel", "value": "Position (mm)" } ] }, { "matcher": { "id": "byName", "options": "Temperature (°C)" }, "properties": [ { "id": "unit", "value": "celsius" }, { "id": "custom.axisPlacement", "value": "vertical" }, { "id": "color", "value": { "mode": "continuous-GrYlRd" } }, { "id": "custom.axisLabel", "value": "Temperature (°C)" } ] } ] },
       "gridPos": { "h": 11, "w": 12, "x": 0, "y": 5 },
       "id": 110,
-      "options": {
-        "barWidth": 0.9,
-        "groupWidth": 0.9,
-        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": false },
-        "orientation": "auto",
-        "showValue": "never",
-        "stacking": "none",
-        "tooltip": { "mode": "single", "sort": "none" },
-        "xTickLabelRotation": 0,
-        "xTickLabelSpacing": 0
-      },
+      "options": { "barWidth": 0.9, "groupWidth": 0.9, "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": false }, "orientation": "auto", "showValue": "never", "stacking": "none", "tooltip": { "mode": "single", "sort": "none" }, "xTickLabelRotation": 0, "xTickLabelSpacing": 0 },
       "targets": [
-        {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "WITH latest AS (SELECT DISTINCT ON (tag_id) tag_id, val_float FROM platform_data.telemetry WHERE tag_id LIKE 'biomass_pyrolyser_01.pyrolyzer_reactor_temperature_%' AND time > NOW() - INTERVAL '30 seconds' ORDER BY tag_id, time DESC) SELECT (regexp_match(tag_id, '_(\\d+)$'))[1] AS \"Position (mm)\", val_float AS \"Temperature (°C)\" FROM latest ORDER BY (regexp_match(tag_id, '_(\\d+)$'))[1]::int",
-          "refId": "A"
-        }
+        { "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "table", "rawQuery": true, "rawSql": "WITH latest AS (SELECT DISTINCT ON (a.tag_id) a.tag_id, t.val_float FROM platform_data.telemetry t JOIN platform_data.asset_tags a ON a.tag_serial = t.tag_serial WHERE a.tag_id LIKE 'biomass_pyrolyser_01.pyrolyzer_reactor_temperature_%' AND t.time > NOW() - INTERVAL '30 seconds' ORDER BY a.tag_id, t.time DESC) SELECT (regexp_match(tag_id, '_(\\d+)$'))[1] AS \"Position (mm)\", val_float AS \"Temperature (°C)\" FROM latest ORDER BY (regexp_match(tag_id, '_(\\d+)$'))[1]::int", "refId": "A" }
       ],
       "title": "Reactor Temperature Profile",
       "type": "barchart"
     },
     {
       "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": {
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "Peak Temp (°C)",
-            "axisPlacement": "auto",
-            "drawStyle": "line",
-            "fillOpacity": 20,
-            "gradientMode": "opacity",
-            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "scaleDistribution": { "type": "linear" },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
-            "thresholdsStyle": { "mode": "off" }
-          },
-          "mappings": [],
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
-          "unit": "celsius"
-        },
-        "overrides": []
-      },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "Peak Temp (°C)", "axisPlacement": "auto", "drawStyle": "line", "fillOpacity": 20, "gradientMode": "opacity", "hideFrom": { "legend": false, "tooltip": false, "viz": false }, "lineInterpolation": "smooth", "lineWidth": 2, "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false, "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" } }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }, "unit": "celsius" }, "overrides": [] },
       "gridPos": { "h": 11, "w": 12, "x": 12, "y": 5 },
       "id": 111,
-      "options": {
-        "legend": { "calcs": ["lastNotNull", "min", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "single", "sort": "none" }
-      },
+      "options": { "legend": { "calcs": ["lastNotNull", "min", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true }, "tooltip": { "mode": "single", "sort": "none" } },
       "targets": [
-        {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
-          "format": "time_series",
-          "rawQuery": true,
-          "rawSql": "SELECT time_bucket('10 seconds', time) AS \"time\", MAX(val_float) AS \"Peak\" FROM platform_data.telemetry WHERE tag_id LIKE 'biomass_pyrolyser_01.pyrolyzer_reactor_temperature_%' AND $__timeFilter(time) GROUP BY 1 ORDER BY 1",
-          "refId": "A"
-        }
+        { "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "time_series", "rawQuery": true, "rawSql": "SELECT time_bucket('10 seconds', t.time) AS \"time\", MAX(t.val_float) AS \"Peak\" FROM platform_data.telemetry t JOIN platform_data.asset_tags a ON a.tag_serial = t.tag_serial WHERE a.tag_id LIKE 'biomass_pyrolyser_01.pyrolyzer_reactor_temperature_%' AND $__timeFilter(t.time) GROUP BY 1 ORDER BY 1", "refId": "A" }
       ],
       "title": "Reactor Peak Temperature — trend (30 min)",
       "type": "timeseries"
     },
     {
       "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "mappings": [
-            { "options": { "0": { "color": "dark-red", "index": 0, "text": "CLOSED" } }, "type": "value" },
-            { "options": { "1": { "color": "dark-green", "index": 1, "text": "OPEN" } }, "type": "value" }
-          ],
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "text", "value": null }] },
-          "unit": "short"
-        },
-        "overrides": []
-      },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [ { "options": { "0": { "color": "dark-red", "index": 0, "text": "CLOSED" } }, "type": "value" }, { "options": { "1": { "color": "dark-green", "index": 1, "text": "OPEN" } }, "type": "value" } ], "thresholds": { "mode": "absolute", "steps": [{ "color": "text", "value": null }] }, "unit": "short" }, "overrides": [] },
       "gridPos": { "h": 6, "w": 6, "x": 0, "y": 16 },
       "id": 120,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "value_only"
-      },
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "value_only" },
       "targets": [
-        {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "SELECT val_bool::int AS \"state\" FROM platform_data.telemetry WHERE tag_id = 'biomass_pyrolyser_01.on_off_valve_for_inseitu_vapour_upgradation' AND val_bool IS NOT NULL ORDER BY time DESC LIMIT 1",
-          "refId": "A"
-        }
+        { "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "table", "rawQuery": true, "rawSql": "SELECT t.val_bool::int AS \"state\" FROM platform_data.telemetry t JOIN platform_data.asset_tags a ON a.tag_serial = t.tag_serial WHERE a.tag_id = 'biomass_pyrolyser_01.on_off_valve_for_inseitu_vapour_upgradation' AND t.val_bool IS NOT NULL ORDER BY t.time DESC LIMIT 1", "refId": "A" }
       ],
       "title": "In-situ Vapour Upgradation Valve",
       "type": "stat"
     },
     {
       "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "mappings": [
-            { "options": { "0": { "color": "dark-red", "index": 0, "text": "CLOSED" } }, "type": "value" },
-            { "options": { "1": { "color": "dark-green", "index": 1, "text": "OPEN" } }, "type": "value" }
-          ],
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "text", "value": null }] },
-          "unit": "short"
-        },
-        "overrides": []
-      },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [ { "options": { "0": { "color": "dark-red", "index": 0, "text": "CLOSED" } }, "type": "value" }, { "options": { "1": { "color": "dark-green", "index": 1, "text": "OPEN" } }, "type": "value" } ], "thresholds": { "mode": "absolute", "steps": [{ "color": "text", "value": null }] }, "unit": "short" }, "overrides": [] },
       "gridPos": { "h": 6, "w": 6, "x": 6, "y": 16 },
       "id": 121,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "value_only"
-      },
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "value_only" },
       "targets": [
-        {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "SELECT val_bool::int AS \"state\" FROM platform_data.telemetry WHERE tag_id = 'biomass_pyrolyser_01.on_off_valve_for_flare_tower_bypass' AND val_bool IS NOT NULL ORDER BY time DESC LIMIT 1",
-          "refId": "A"
-        }
+        { "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "table", "rawQuery": true, "rawSql": "SELECT t.val_bool::int AS \"state\" FROM platform_data.telemetry t JOIN platform_data.asset_tags a ON a.tag_serial = t.tag_serial WHERE a.tag_id = 'biomass_pyrolyser_01.on_off_valve_for_flare_tower_bypass' AND t.val_bool IS NOT NULL ORDER BY t.time DESC LIMIT 1", "refId": "A" }
       ],
       "title": "Flare Tower Bypass Valve",
       "type": "stat"
     },
     {
       "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "mappings": [
-            { "options": { "0": { "color": "dark-red", "index": 0, "text": "CLOSED" } }, "type": "value" },
-            { "options": { "1": { "color": "dark-green", "index": 1, "text": "OPEN" } }, "type": "value" }
-          ],
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "text", "value": null }] },
-          "unit": "short"
-        },
-        "overrides": []
-      },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [ { "options": { "0": { "color": "dark-red", "index": 0, "text": "CLOSED" } }, "type": "value" }, { "options": { "1": { "color": "dark-green", "index": 1, "text": "OPEN" } }, "type": "value" } ], "thresholds": { "mode": "absolute", "steps": [{ "color": "text", "value": null }] }, "unit": "short" }, "overrides": [] },
       "gridPos": { "h": 6, "w": 6, "x": 12, "y": 16 },
       "id": 122,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "value_only"
-      },
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "value_only" },
       "targets": [
-        {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "SELECT val_bool::int AS \"state\" FROM platform_data.telemetry WHERE tag_id = 'biomass_pyrolyser_01.on_off_valve_for_condensor_entry' AND val_bool IS NOT NULL ORDER BY time DESC LIMIT 1",
-          "refId": "A"
-        }
+        { "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "table", "rawQuery": true, "rawSql": "SELECT t.val_bool::int AS \"state\" FROM platform_data.telemetry t JOIN platform_data.asset_tags a ON a.tag_serial = t.tag_serial WHERE a.tag_id = 'biomass_pyrolyser_01.on_off_valve_for_condensor_entry' AND t.val_bool IS NOT NULL ORDER BY t.time DESC LIMIT 1", "refId": "A" }
       ],
       "title": "Condenser Entry Valve",
       "type": "stat"
     },
     {
       "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "mappings": [
-            { "options": { "0": { "color": "dark-red", "index": 0, "text": "CLOSED" } }, "type": "value" },
-            { "options": { "1": { "color": "dark-green", "index": 1, "text": "OPEN" } }, "type": "value" }
-          ],
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "text", "value": null }] },
-          "unit": "short"
-        },
-        "overrides": []
-      },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "mappings": [ { "options": { "0": { "color": "dark-red", "index": 0, "text": "CLOSED" } }, "type": "value" }, { "options": { "1": { "color": "dark-green", "index": 1, "text": "OPEN" } }, "type": "value" } ], "thresholds": { "mode": "absolute", "steps": [{ "color": "text", "value": null }] }, "unit": "short" }, "overrides": [] },
       "gridPos": { "h": 6, "w": 6, "x": 18, "y": 16 },
       "id": 123,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "value_only"
-      },
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "value_only" },
       "targets": [
-        {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "SELECT val_bool::int AS \"state\" FROM platform_data.telemetry WHERE tag_id = 'biomass_pyrolyser_01.on_off_valve_for_chiller_outlet_bypass' AND val_bool IS NOT NULL ORDER BY time DESC LIMIT 1",
-          "refId": "A"
-        }
+        { "datasource": { "type": "postgres", "uid": "timescaledb" }, "format": "table", "rawQuery": true, "rawSql": "SELECT t.val_bool::int AS \"state\" FROM platform_data.telemetry t JOIN platform_data.asset_tags a ON a.tag_serial = t.tag_serial WHERE a.tag_id = 'biomass_pyrolyser_01.on_off_valve_for_chiller_outlet_bypass' AND t.val_bool IS NOT NULL ORDER BY t.time DESC LIMIT 1", "refId": "A" }
       ],
       "title": "Chiller Outlet Bypass Valve",
-      "type": "stat"
-    },
-    {
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "blue", "value": null }
-            ]
-          },
-          "unit": "kwatth"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 5, "w": 8, "x": 0, "y": 22 },
-      "id": 130,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "value_only"
-      },
-      "targets": [
-        {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "SELECT val_float AS \"energy\" FROM platform_data.telemetry WHERE tag_id = 'biomass_pyrolyser_01.auxillary_system_energy_consumption' AND val_float IS NOT NULL ORDER BY time DESC LIMIT 1",
-          "refId": "A"
-        }
-      ],
-      "title": "Auxiliary System Energy",
-      "type": "stat"
-    },
-    {
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "dark-orange", "value": null }
-            ]
-          },
-          "unit": "kwatth"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 5, "w": 8, "x": 8, "y": 22 },
-      "id": 131,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "value_only"
-      },
-      "targets": [
-        {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "SELECT val_float AS \"energy\" FROM platform_data.telemetry WHERE tag_id = 'biomass_pyrolyser_01.induction_heating_system_energy_consumption' AND val_float IS NOT NULL ORDER BY time DESC LIMIT 1",
-          "refId": "A"
-        }
-      ],
-      "title": "Induction Heating Energy",
-      "type": "stat"
-    },
-    {
-      "datasource": { "type": "postgres", "uid": "timescaledb" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "dark-purple", "value": null }
-            ]
-          },
-          "unit": "kwatth"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 5, "w": 8, "x": 16, "y": 22 },
-      "id": 132,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "value_only"
-      },
-      "targets": [
-        {
-          "datasource": { "type": "postgres", "uid": "timescaledb" },
-          "format": "table",
-          "rawQuery": true,
-          "rawSql": "SELECT val_float AS \"energy\" FROM platform_data.telemetry WHERE tag_id = 'biomass_pyrolyser_01.plc_system_energy_consumption' AND val_float IS NOT NULL ORDER BY time DESC LIMIT 1",
-          "refId": "A"
-        }
-      ],
-      "title": "PLC System Energy",
       "type": "stat"
     }
   ],
@@ -602,6 +167,6 @@
   "timezone": "browser",
   "title": "Pyrolysis Overview",
   "uid": "pyrolysis-overview",
-  "version": 5,
+  "version": 2,
   "weekStart": ""
 }

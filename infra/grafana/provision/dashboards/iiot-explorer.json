@@ -3,7 +3,10 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -20,10 +23,15 @@
   "liveNow": false,
   "panels": [
     {
-      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "datasource": {
+        "type": "postgres",
+        "uid": "TimescaleDB"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
+          "color": {
+            "mode": "palette-classic"
+          },
           "custom": {
             "axisCenteredZero": false,
             "axisColorMode": "text",
@@ -33,53 +41,88 @@
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "opacity",
-            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
             "insertNulls": false,
             "lineInterpolation": "smooth",
             "lineWidth": 2,
             "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
+            "scaleDistribution": {
+              "type": "linear"
+            },
             "showPoints": "never",
             "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
-            "thresholdsStyle": { "mode": "off" }
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
           },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "red", "value": 80 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
             ]
           },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 14, "w": 24, "x": 0, "y": 0 },
+      "gridPos": {
+        "h": 14,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
       "id": 1,
       "options": {
         "legend": {
-          "calcs": ["lastNotNull", "min", "max", "mean"],
+          "calcs": [
+            "lastNotNull",
+            "min",
+            "max",
+            "mean"
+          ],
           "displayMode": "table",
           "placement": "right",
           "showLegend": true
         },
-        "tooltip": { "mode": "multi", "sort": "desc" }
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "targets": [
         {
-          "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "TimescaleDB"
+          },
           "format": "time_series",
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT time AS \"time\", val_float AS \"$tag_id\" FROM platform_data.telemetry WHERE tag_id = '$tag_id' AND val_float IS NOT NULL AND $__timeFilter(time) ORDER BY time ASC",
+          "rawSql": "SELECT t.time AS \"time\", t.val_float AS \"$tag_id\" FROM platform_data.telemetry t JOIN platform_data.asset_tags a ON a.tag_serial = t.tag_serial WHERE a.tag_id = '$tag_id' AND val_float IS NOT NULL AND $__timeFilter(t.time) ORDER BY t.time ASC",
           "refId": "A",
           "select": [
             [
               {
-                "params": ["val_float"],
+                "params": [
+                  "val_float"
+                ],
                 "type": "column"
               }
             ]
@@ -95,26 +138,39 @@
           ]
         }
       ],
-      "title": "Time Series — $tag_id",
+      "title": "Time Series \u2014 $tag_id",
       "type": "timeseries"
     },
     {
-      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "datasource": {
+        "type": "postgres",
+        "uid": "TimescaleDB"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "blue", "value": null }
+              {
+                "color": "blue",
+                "value": null
+              }
             ]
           },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 14 },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 14
+      },
       "id": 2,
       "options": {
         "colorMode": "value",
@@ -122,7 +178,9 @@
         "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -130,14 +188,26 @@
       },
       "targets": [
         {
-          "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "TimescaleDB"
+          },
           "format": "table",
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT val_float FROM platform_data.telemetry WHERE tag_id = '$tag_id' AND val_float IS NOT NULL ORDER BY time DESC LIMIT 1",
+          "rawSql": "SELECT val_float FROM platform_data.telemetry t JOIN platform_data.asset_tags a ON a.tag_serial = t.tag_serial WHERE a.tag_id = '$tag_id' AND val_float IS NOT NULL ORDER BY t.time DESC LIMIT 1",
           "refId": "A",
-          "select": [[{ "params": ["val_float"], "type": "column" }]],
+          "select": [
+            [
+              {
+                "params": [
+                  "val_float"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
           "table": "telemetry",
           "timeColumn": "time",
           "where": []
@@ -147,25 +217,72 @@
       "type": "stat"
     },
     {
-      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "datasource": {
+        "type": "postgres",
+        "uid": "TimescaleDB"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [
-            { "options": { "0": { "color": "red", "text": "STOPPED" } }, "type": "value" },
-            { "options": { "1": { "color": "green", "text": "RUNNING" } }, "type": "value" },
-            { "options": { "false": { "color": "red", "text": "OFF" } }, "type": "value" },
-            { "options": { "true": { "color": "green", "text": "ON" } }, "type": "value" }
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "text": "STOPPED"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "1": {
+                  "color": "green",
+                  "text": "RUNNING"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "false": {
+                  "color": "red",
+                  "text": "OFF"
+                }
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "true": {
+                  "color": "green",
+                  "text": "ON"
+                }
+              },
+              "type": "value"
+            }
           ],
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "text", "value": null }]
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
           },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 14 },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 14
+      },
       "id": 3,
       "options": {
         "colorMode": "background",
@@ -173,7 +290,9 @@
         "justifyMode": "center",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -181,14 +300,26 @@
       },
       "targets": [
         {
-          "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "TimescaleDB"
+          },
           "format": "table",
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT val_bool FROM platform_data.telemetry WHERE tag_id = '$tag_id' AND val_bool IS NOT NULL ORDER BY time DESC LIMIT 1",
+          "rawSql": "SELECT val_bool FROM platform_data.telemetry t JOIN platform_data.asset_tags a ON a.tag_serial = t.tag_serial WHERE a.tag_id = '$tag_id' AND val_bool IS NOT NULL ORDER BY t.time DESC LIMIT 1",
           "refId": "A",
-          "select": [[{ "params": ["val_bool"], "type": "column" }]],
+          "select": [
+            [
+              {
+                "params": [
+                  "val_bool"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
           "table": "telemetry",
           "timeColumn": "time",
           "where": []
@@ -198,23 +329,39 @@
       "type": "stat"
     },
     {
-      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "datasource": {
+        "type": "postgres",
+        "uid": "TimescaleDB"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 1 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              }
             ]
           },
           "unit": "s"
         },
         "overrides": []
       },
-      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 14 },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 14
+      },
       "id": 4,
       "options": {
         "colorMode": "value",
@@ -222,7 +369,9 @@
         "justifyMode": "center",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["lastNotNull"],
+          "calcs": [
+            "lastNotNull"
+          ],
           "fields": "",
           "values": false
         },
@@ -230,14 +379,26 @@
       },
       "targets": [
         {
-          "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "TimescaleDB"
+          },
           "format": "table",
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT EXTRACT(EPOCH FROM (NOW() - MAX(time))) AS freshness_seconds FROM platform_data.telemetry WHERE tag_id = '$tag_id'",
+          "rawSql": "SELECT EXTRACT(EPOCH FROM (NOW() - MAX(time))) AS freshness_seconds FROM platform_data.telemetry t JOIN platform_data.asset_tags a ON a.tag_serial = t.tag_serial WHERE a.tag_id = '$tag_id'",
           "refId": "A",
-          "select": [[{ "params": ["val_float"], "type": "column" }]],
+          "select": [
+            [
+              {
+                "params": [
+                  "val_float"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
           "table": "telemetry",
           "timeColumn": "time",
           "where": []
@@ -247,20 +408,35 @@
       "type": "stat"
     },
     {
-      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "datasource": {
+        "type": "postgres",
+        "uid": "TimescaleDB"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "text", "value": null }]
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              }
+            ]
           },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 14 },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 14
+      },
       "id": 5,
       "options": {
         "colorMode": "value",
@@ -268,7 +444,9 @@
         "justifyMode": "center",
         "orientation": "auto",
         "reduceOptions": {
-          "calcs": ["count"],
+          "calcs": [
+            "count"
+          ],
           "fields": "",
           "values": false
         },
@@ -276,14 +454,26 @@
       },
       "targets": [
         {
-          "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "TimescaleDB"
+          },
           "format": "table",
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT COUNT(*) FROM platform_data.telemetry WHERE tag_id = '$tag_id' AND $__timeFilter(time)",
+          "rawSql": "SELECT COUNT(*) FROM platform_data.telemetry t JOIN platform_data.asset_tags a ON a.tag_serial = t.tag_serial WHERE a.tag_id = '$tag_id' AND $__timeFilter(t.time)",
           "refId": "A",
-          "select": [[{ "params": ["val_float"], "type": "column" }]],
+          "select": [
+            [
+              {
+                "params": [
+                  "val_float"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
           "table": "telemetry",
           "timeColumn": "time",
           "where": []
@@ -293,34 +483,61 @@
       "type": "stat"
     },
     {
-      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "datasource": {
+        "type": "postgres",
+        "uid": "TimescaleDB"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "blue", "value": null }]
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
           },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 19 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 19
+      },
       "id": 6,
       "options": {
         "showHeader": true
       },
       "targets": [
         {
-          "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "TimescaleDB"
+          },
           "format": "table",
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
           "rawSql": "SELECT tag_id AS \"Tag\", data_type AS \"Type\", tag_name AS \"Name\" FROM platform_data.asset_tags WHERE asset_id = '$asset_id' ORDER BY tag_id",
           "refId": "A",
-          "select": [[{ "params": ["*"], "type": "column" }]],
+          "select": [
+            [
+              {
+                "params": [
+                  "*"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
           "table": "asset_tags",
           "timeColumn": "tag_id",
           "where": []
@@ -330,51 +547,88 @@
       "type": "table"
     },
     {
-      "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+      "datasource": {
+        "type": "postgres",
+        "uid": "TimescaleDB"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": {
+            "mode": "thresholds"
+          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "blue", "value": null }]
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
           },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 19 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 19
+      },
       "id": 7,
       "options": {
         "showHeader": true
       },
       "targets": [
         {
-          "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+          "datasource": {
+            "type": "postgres",
+            "uid": "TimescaleDB"
+          },
           "format": "table",
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT tag_id AS \"Tag\", val_float AS \"Value\", time AS \"Last Seen\" FROM platform_data.telemetry WHERE tag_id LIKE '$asset_id.%' AND val_float IS NOT NULL AND time > NOW() - INTERVAL '1 minute' AND time = (SELECT MAX(t2.time) FROM platform_data.telemetry t2 WHERE t2.tag_id = platform_data.telemetry.tag_id) ORDER BY tag_id",
+          "rawSql": "SELECT tag_id AS \"Tag\", t.val_float AS \"Value\", time AS \"Last Seen\" FROM platform_data.telemetry WHERE tag_id LIKE '$asset_id.%' AND val_float IS NOT NULL AND time > NOW() - INTERVAL '1 minute' AND time = (SELECT MAX(t2.time) FROM platform_data.telemetry t2 WHERE t2.tag_id = platform_data.telemetry.tag_id) ORDER BY tag_id",
           "refId": "A",
-          "select": [[{ "params": ["*"], "type": "column" }]],
+          "select": [
+            [
+              {
+                "params": [
+                  "*"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
           "table": "telemetry",
           "timeColumn": "time",
           "where": []
         }
       ],
-      "title": "Live Snapshot — all float tags for $asset_id",
+      "title": "Live Snapshot \u2014 all float tags for $asset_id",
       "type": "table"
     }
   ],
   "refresh": "5s",
   "schemaVersion": 39,
-  "tags": ["iiot", "lab"],
+  "tags": [
+    "iiot",
+    "lab"
+  ],
   "templating": {
     "list": [
       {
-        "current": { "selected": false, "text": "", "value": "" },
-        "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+        "current": {
+          "selected": false,
+          "text": "",
+          "value": ""
+        },
+        "datasource": {
+          "type": "postgres",
+          "uid": "TimescaleDB"
+        },
         "definition": "SELECT DISTINCT asset_id FROM platform_data.assets ORDER BY asset_id",
         "hide": 0,
         "includeAll": false,
@@ -390,8 +644,15 @@
         "type": "query"
       },
       {
-        "current": { "selected": false, "text": "", "value": "" },
-        "datasource": { "type": "postgres", "uid": "TimescaleDB" },
+        "current": {
+          "selected": false,
+          "text": "",
+          "value": ""
+        },
+        "datasource": {
+          "type": "postgres",
+          "uid": "TimescaleDB"
+        },
         "definition": "SELECT tag_id FROM platform_data.asset_tags WHERE asset_id = '$asset_id' ORDER BY tag_id",
         "hide": 0,
         "includeAll": false,
@@ -408,10 +669,36 @@
       }
     ]
   },
-  "time": { "from": "now-15m", "to": "now" },
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
   "timepicker": {
-    "refresh_intervals": ["1s", "5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "6h", "12h", "1d"],
-    "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
+    "refresh_intervals": [
+      "1s",
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "30m",
+      "1h",
+      "6h",
+      "12h",
+      "1d"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d"
+    ]
   },
   "timezone": "browser",
   "title": "IIoT Explorer",
