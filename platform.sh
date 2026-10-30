@@ -58,21 +58,27 @@ deploy() {
     exit 1
   fi
 
+  # V2.3 Schema Check: Verify the core tables AND the archive tables exist.
+  # This ensures the whole init.sql transaction committed successfully.
+  echo "Verifying V2.3 schema..."
   local schema_ok
   schema_ok="$(
     docker compose exec -T timescaledb sh -lc \
       'psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Atqc \
-      "SELECT to_regclass('\''platform_data.telemetry'\'') IS NOT NULL;"'
+      "SELECT COUNT(*) FROM information_schema.tables 
+       WHERE table_schema = '\''platform_data'\'' 
+       AND table_name IN ('\''telemetry'\'', '\''telemetry_archive_manifest'\'', '\''telemetry_retention_config'\'');"'
   )"
 
-  if [[ "$schema_ok" != "t" ]]; then
-    echo "ERROR: platform_data.telemetry was not found." >&2
-    echo "Inspect database initialization logs and existing database state." >&2
+  if [[ "$schema_ok" != "3" ]]; then
+    echo "ERROR: V2.3 schema verification failed." >&2
+    echo "Expected 3 core tables, found: $schema_ok" >&2
+    echo "Inspect database initialization logs." >&2
     docker compose logs --tail=100 timescaledb
     exit 1
   fi
 
-  echo "Database readiness and telemetry table check passed."
+  echo "Database readiness and V2.3 schema check passed."
   docker compose ps
 }
 
@@ -84,7 +90,9 @@ status() {
 
 backup() {
   check_files
-  sudo ./scripts/backup.sh
+  # Run WITHOUT sudo so the resulting backup files are owned by the current
+  # user, allowing the 7-day retention cleanup to succeed on future runs.
+  ./scripts/backup.sh
 }
 
 case "${1:-}" in

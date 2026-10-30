@@ -24,18 +24,17 @@ if [[ -f "${REPO_DIR}/.env" ]]; then
 fi
 
 DATA_PATH="${DATA_PATH:-/var/lib/lab-platform/data}"
+LOCAL_BACKUP_DIR="/var/backups/lab-iot"
 
 if [[ $EUID -ne 0 ]]; then
     echo "ERROR: This script must be run as root (use sudo)." >&2
     exit 1
 fi
 
-echo "==> Repo:      ${REPO_DIR}"
-echo "==> DATA_PATH: ${DATA_PATH}"
-echo ""
-
-# --- Create directory structure ----------------------------------------------
-echo "==> Creating directory tree..."
+# ------------------------------------------------------------------------------
+# 1. Create Data Directory Tree
+# ------------------------------------------------------------------------------
+echo "==> Creating data directory tree at ${DATA_PATH}..."
 mkdir -p \
     "${DATA_PATH}/timescaledb" \
     "${DATA_PATH}/grafana" \
@@ -43,23 +42,36 @@ mkdir -p \
     "${DATA_PATH}/redis" \
     "${DATA_PATH}/minio"
 
-# --- Set correct ownership per service ---------------------------------------
-# UIDs are the container runtime UIDs, taken from each image's docs:
-#   TimescaleDB (postgres user)   -> 999:999
+# ------------------------------------------------------------------------------
+# 2. Create Local Backup Directory
+# ------------------------------------------------------------------------------
+echo "==> Creating local backup directory at ${LOCAL_BACKUP_DIR}..."
+mkdir -p "${LOCAL_BACKUP_DIR}"
+# Assign ownership to the user who invoked sudo, so the backup script 
+# (run as a normal user) can write to it.
+REAL_USER="${SUDO_USER:-$USER}"
+chown -R "${REAL_USER}:${REAL_USER}" "${LOCAL_BACKUP_DIR}"
+chmod 700 "${LOCAL_BACKUP_DIR}"
+
+# ------------------------------------------------------------------------------
+# 3. Set Correct Ownership Per Service
+# ------------------------------------------------------------------------------
+# UIDs are the container runtime UIDs, verified against the running images:
+#   TimescaleDB (postgres user)   -> 70:70
 #   Redis (redis user)            -> 999:999
 #   Grafana                       -> 472:472
 #   EMQX                          -> 1000:1000
 #   MinIO                         -> 1000:1000
+echo "==> Setting container data ownership..."
+chown -R 70:70      "${DATA_PATH}/timescaledb"
+chown -R 999:999    "${DATA_PATH}/redis"
+chown -R 472:472    "${DATA_PATH}/grafana"
+chown -R 1000:1000  "${DATA_PATH}/emqx"
+chown -R 1000:1000  "${DATA_PATH}/minio"
 
-echo "==> Setting ownership..."
-chown -R 999:999   "${DATA_PATH}/timescaledb"
-chown -R 999:999   "${DATA_PATH}/redis"
-chown -R 472:472   "${DATA_PATH}/grafana"
-chown -R 1000:1000 "${DATA_PATH}/emqx"
-chown -R 1000:1000 "${DATA_PATH}/minio"
-
-# --- Set permissions ---------------------------------------------------------
-# Directories need rwx for the owner; files need rw. No world access.
+# ------------------------------------------------------------------------------
+# 4. Set Restrictive Permissions
+# ------------------------------------------------------------------------------
 echo "==> Setting permissions..."
 chmod -R u+rwX,go-rwx \
     "${DATA_PATH}/timescaledb" \
@@ -68,7 +80,9 @@ chmod -R u+rwX,go-rwx \
     "${DATA_PATH}/emqx" \
     "${DATA_PATH}/minio"
 
-# --- Verify ------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# 5. Verify
+# ------------------------------------------------------------------------------
 echo ""
 echo "==> Final state:"
 ls -ld \
@@ -76,12 +90,12 @@ ls -ld \
     "${DATA_PATH}/grafana" \
     "${DATA_PATH}/emqx" \
     "${DATA_PATH}/redis" \
-    "${DATA_PATH}/minio"
+    "${DATA_PATH}/minio" \
+    "${LOCAL_BACKUP_DIR}"
 
 echo ""
 echo "==> bootstrap-storage: done."
 echo ""
 echo "Next steps:"
-echo "  1. Edit docker-compose.yml to remove the 'init-permissions' service"
-echo "     and every 'depends_on: init-permissions' reference."
-echo "  2. docker compose up -d"
+echo "  1. Ensure your .env file is populated with strong passwords."
+echo "  2. Run: docker compose up -d"
