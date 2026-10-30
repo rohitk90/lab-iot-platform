@@ -1,66 +1,139 @@
+# =============================================================================
+# LAB IIOT PLATFORM - infrastructure stack (v2)
+#
+# Changes versus the previous file:
+#   * Image tags come from .env (pin them; see .env.example). Defaults keep the
+#     old behaviour so the file still starts if you set nothing.
+#   * Real healthchecks; dependents wait for service_healthy, not service_started.
+#     Telegraf no longer starts before the database accepts connections.
+#   * Internal services (Postgres, Redis, MinIO, EMQX dashboard, Grafana) publish
+#     on INTERNAL_BIND (default 127.0.0.1). Only nginx:80 and MQTT:1883 face the LAN.
+#   * Redis now requires a password. Grafana admin password comes from .env.
+#   * Postgres tuning is env-driven and adds SSD/WAL settings and slow-query logs.
+#   * Log rotation on every container so logs cannot fill the 1TB disk.
+#   * Clean shutdown window for Postgres, restart: unless-stopped.
+# =============================================================================
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
 services:
 
   # ---------------------------------------------------------------------------
   timescaledb:
-    image: timescale/timescaledb:latest-pg16
+    image: ${TIMESCALEDB_IMAGE:-timescale/timescaledb:latest-pg16}
     container_name: lab_timescaledb
-    restart: always
+    restart: unless-stopped
+    stop_grace_period: 60s          # let Postgres checkpoint and shut down cleanly
+    shm_size: 256mb
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    command: >
+      postgres
+      -c shared_buffers=${PG_SHARED_BUFFERS:-2GB}
+      -c effective_cache_size=${PG_EFFECTIVE_CACHE_SIZE:-6GB}
+      -c maintenance_work_mem=${PG_MAINTENANCE_WORK_MEM:-512MB}
+      -c work_mem=${PG_WORK_MEM:-16MB}
+      -c max_connections=${PG_MAX_CONNECTIONS:-50}
+      -c max_wal_size=${PG_MAX_WAL_SIZE:-4GB}
+      -c checkpoint_completion_target=0.9
+      -c wal_compression=on
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+      -c log_min_duration_statement=2000
     volumes:
       - ${DATA_PATH}/timescaledb:/var/lib/postgresql/data
+      # Runs ONLY when the data directory is empty (first boot).
       - ./infra/timescaledb/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     ports:
-      - "5432:5432"
+      - "${INTERNAL_BIND:-127.0.0.1}:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    logging: *default-logging
 
   # ---------------------------------------------------------------------------
   emqx:
-    image: emqx/emqx:5.8.0
+    image: ${EMQX_IMAGE:-emqx/emqx:5.8.0}
     container_name: lab_emqx
-    restart: always
+    restart: unless-stopped
     volumes:
       - ${DATA_PATH}/emqx:/opt/emqx/data
     ports:
-      - "1883:1883"     # MQTT Connection Port
-      - "18083:18083"   # EMQX Admin Dashboard Web Interface
+      - "1883:1883"                                   # MQTT (LAN: PLCs / edge devices)
+      - "${INTERNAL_BIND:-127.0.0.1}:18083:18083"     # Admin dashboard
+    healthcheck:
+      test: ["CMD", "emqx", "ctl", "status"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    logging: *default-logging
 
   # ---------------------------------------------------------------------------
   redis:
-    image: redis:7.2-alpine
+    image: ${REDIS_IMAGE:-redis:7.2-alpine}
     container_name: lab_redis
-    restart: always
-    command: redis-server --appendonly yes
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env}
+      REDISCLI_AUTH: ${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env}
+    # Password is read from the container env, so it stays out of `ps` output.
+    command:
+      - sh
+      - -c
+      - exec redis-server --appendonly yes --requirepass "$$REDIS_PASSWORD"
     volumes:
       - ${DATA_PATH}/redis:/data
     ports:
-      - "6379:6379"
+      - "${INTERNAL_BIND:-127.0.0.1}:6379:6379"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep -q PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    logging: *default-logging
 
   # ---------------------------------------------------------------------------
   minio:
-    image: pgsty/minio
+    image: ${MINIO_IMAGE:-pgsty/minio}
     container_name: lab_minio
-    restart: always
+    restart: unless-stopped
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     volumes:
       - ${DATA_PATH}/minio:/data
     ports:
-      - "9000:9000"     # API Endpoint
-      - "9001:9001"     # Web Console
+      - "${INTERNAL_BIND:-127.0.0.1}:9000:9000"   # S3 API (archival worker)
+      - "${INTERNAL_BIND:-127.0.0.1}:9001:9001"   # Web console
     command: server /data --console-address ":9001"
+    logging: *default-logging
 
   # ---------------------------------------------------------------------------
   grafana:
-    image: grafana/grafana-oss:latest
+    image: ${GRAFANA_IMAGE:-grafana/grafana-oss:latest}
     container_name: lab_grafana
-    restart: always
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD in .env}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_ANALYTICS_REPORTING_ENABLED=false
+      - GF_ANALYTICS_CHECK_FOR_UPDATES=false
       - GF_DASHBOARDS_MIN_REFRESH_INTERVAL=1s
-      # Securely inject database credentials from .env to hide plain-text passwords
+      # Consumed by the provisioned datasource file in infra/grafana/provision
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -68,28 +141,39 @@ services:
       - ${DATA_PATH}/grafana:/var/lib/grafana
       - ./infra/grafana/provision:/etc/grafana/provisioning:ro
     ports:
-      - "3000:3000"     # Grafana UI (also fronted by nginx)
+      - "${INTERNAL_BIND:-127.0.0.1}:3000:3000"   # direct access; users go via nginx
     depends_on:
       timescaledb:
-        condition: service_started
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:3000/api/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging: *default-logging
 
   # ---------------------------------------------------------------------------
   nginx:
-    image: nginx:alpine
+    image: ${NGINX_IMAGE:-nginx:alpine}
     container_name: lab_nginx
-    restart: always
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     volumes:
       - ./infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
-      - "80:80"         # Unified Web Access Port for the 40 desktops
+      - "80:80"         # Unified web access for the lab desktops
     depends_on:
-      - grafana
+      grafana:
+        condition: service_healthy
+    logging: *default-logging
 
   # ---------------------------------------------------------------------------
   telegraf_server:
-    image: telegraf:alpine
+    image: ${TELEGRAF_IMAGE:-telegraf:alpine}
     container_name: lab_telegraf_server
-    restart: always
+    restart: unless-stopped
     command: telegraf --non-strict-env-handling
     environment:
       - TELEGRAF_DB_CONNECTION=host=timescaledb user=${POSTGRES_USER} password=${POSTGRES_PASSWORD} dbname=${POSTGRES_DB} sslmode=disable search_path=platform_data
@@ -98,8 +182,11 @@ services:
     volumes:
       - ./infra/telegraf_server/telegraf.conf:/etc/telegraf/telegraf.conf:ro
     depends_on:
-      - emqx
-      - timescaledb
+      emqx:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    logging: *default-logging
 
 networks:
   default:
