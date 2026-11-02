@@ -176,7 +176,7 @@ services:
     restart: unless-stopped
     command: telegraf --non-strict-env-handling
     environment:
-      - TELEGRAF_DB_CONNECTION=host=timescaledb user=${POSTGRES_USER} password=${POSTGRES_PASSWORD} dbname=${POSTGRES_DB} sslmode=disable search_path=platform_data
+      - TELEGRAF_DB_CONNECTION=${TELEGRAF_DB_CONNECTION}
       - TELEGRAF_MQTT_USER=${TELEGRAF_MQTT_USER}
       - TELEGRAF_MQTT_PASSWORD=${TELEGRAF_MQTT_PASSWORD}
     volumes:
